@@ -25,7 +25,7 @@ function scheduleNotification() {
 	const nextDay = new Date(currentDate);
 	nextDay.setDate(currentDate.getDate() + 1);
 	// Les paramètres de setHours sont : heures, minutes, secondes, millisecondes
-	nextDay.setHours(12, 0, 0, 0); // Mettez l'heure à laquelle vous souhaitez recevoir la notification
+	nextDay.setHours(11, 0, 0, 0); // Mettez l'heure à laquelle vous souhaitez recevoir la notification
 
 	const timeUntilNextDay = nextDay - currentDate;
 	const timeUntilNextDayInHours = (timeUntilNextDay / 1000 / 60 / 60).toFixed(1);
