@@ -16,7 +16,6 @@ const yourDiscordChannelID = config.channel_id;
 client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 	scheduleNotification();
-	sendColorNotification();
 });
 
 client.login(config.bot_secret);
@@ -25,13 +24,17 @@ function scheduleNotification() {
 	const currentDate = new Date();
 	const nextDay = new Date(currentDate);
 	nextDay.setDate(currentDate.getDate() + 1);
+	// Les paramètres de setHours sont : heures, minutes, secondes, millisecondes
 	nextDay.setHours(12, 0, 0, 0); // Mettez l'heure à laquelle vous souhaitez recevoir la notification
 
 	const timeUntilNextDay = nextDay - currentDate;
+	const timeUntilNextDayInHours = (timeUntilNextDay / 1000 / 60 / 60).toFixed(1);
+	const timeUntilNextDayInMinutes = (timeUntilNextDay / 1000 / 60).toFixed(1);
+
+	console.log(`Next notification in ${timeUntilNextDayInHours} hours (${timeUntilNextDayInMinutes} minutes)`);
 
 	setTimeout(() => {
 		sendColorNotification();
-		scheduleNotification(); // Répétez pour le jour suivant
 	}, timeUntilNextDay);
 }
 
@@ -39,9 +42,9 @@ async function sendColorNotification() {
 	const currentDate = new Date();
 	const tomorrowDate = new Date(currentDate);
 	tomorrowDate.setDate(currentDate.getDate());
-//   tomorrowDate.setDate(currentDate.getDate() + 1);
-
 	const formattedDate = formatDate(tomorrowDate);
+
+	console.log(`Fetching tempo color for ${formattedDate}`);
 
 	try {
 		const response = await axios.get(`https://particulier.edf.fr/services/rest/referentiel/searchTempoStore?dateRelevant=${formattedDate}`);
@@ -70,6 +73,8 @@ async function sendColorNotification() {
 	} catch (error) {
 		console.error('Error fetching tempo color:', error.message);
 	}
+
+	scheduleNotification();
 }
 
 function formatDate(date) {
