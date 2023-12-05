@@ -16,6 +16,7 @@ const yourDiscordChannelID = config.channel_id;
 client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 	scheduleNotification();
+	// sendColorNotification(); // test purpose only
 });
 
 client.login(config.bot_secret);
@@ -50,26 +51,43 @@ async function sendColorNotification() {
 		const response = await axios.get(`https://particulier.edf.fr/services/rest/referentiel/searchTempoStore?dateRelevant=${formattedDate}`);
 		let today_color = response.data.couleurJourJ.replace('TEMPO_', '').toLowerCase();
 		let tomorrow_color = response.data.couleurJourJ1.replace('TEMPO_', '').toLowerCase();
+
+		const remaining_days = await axios.get(`https://particulier.edf.fr/services/rest/referentiel/getNbTempoDays`);
 	
 		if (today_color === 'bleu') {
-			today_color = 'blue';
+			today_color = 'blue_circle';
 		} else if (today_color === 'blanc') {
-			today_color = 'white';
+			today_color = 'white_circle';
 		} else if (today_color === 'rouge') {
-			today_color = 'red';
+			today_color = 'red_circle';
 		}
 
 		if (tomorrow_color === 'bleu') {
-			tomorrow_color = 'blue';
+			tomorrow_color = 'blue_circle';
 		} else if (tomorrow_color === 'blanc') {
-			tomorrow_color = 'white';
+			tomorrow_color = 'white_circle';
 		} else if (tomorrow_color === 'rouge') {
-			tomorrow_color = 'red';
+			tomorrow_color = 'red_circle';
+		} else {
+			tomorrow_color = 'person_shrugging';
 		}
 
 		const channel = await client.channels.fetch(yourDiscordChannelID);
 
-		channel.send(`Aujourd'hui, c'est un jour :${today_color}_circle: \nDemain, c'est un jour :${tomorrow_color}_circle:`);
+		// Send an embed instead of a message
+		channel.send({
+			embeds: [
+				{
+					title: `Bonjour !`,
+					description: `La couleur Tempo pour aujourd'hui est :${today_color}: \nLa couleur Tempo pour demain est :${tomorrow_color}: \n\nIl reste ${remaining_days.data.PARAM_NB_J_BLEU} jours :blue_circle:, ${remaining_days.data.PARAM_NB_J_BLANC} jours :white_circle: et ${remaining_days.data.PARAM_NB_J_ROUGE} jours :red_circle: dans le mois.`,
+					color: 0x0099ff,
+				},
+			],
+		});
+
+		// remaining_days.data.PARAM_NB_J_BLEU
+		// remaining_days.data.PARAM_NB_J_BLANC
+		// remaining_days.data.PARAM_NB_J_ROUGE
 	} catch (error) {
 		console.error('Error fetching tempo color:', error.message);
 	}
