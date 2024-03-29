@@ -51,35 +51,36 @@ async function sendColorNotification() {
 		const response = await axios.get(`https://particulier.edf.fr/services/rest/referentiel/searchTempoStore?dateRelevant=${formattedDate}`);
 		let today_color = response.data.couleurJourJ.replace('TEMPO_', '').toLowerCase();
 		let tomorrow_color = response.data.couleurJourJ1.replace('TEMPO_', '').toLowerCase();
+		let today_emoji = '';
+		let tomorrow_emoji = '';
 
 		const remaining_days = await axios.get(`https://particulier.edf.fr/services/rest/referentiel/getNbTempoDays`);
 	
 		if (today_color === 'bleu') {
-			today_color = 'blue_circle';
+			today_emoji = 'blue_circle';
 		} else if (today_color === 'blanc') {
-			today_color = 'white_circle';
+			today_emoji = 'white_circle';
 		} else if (today_color === 'rouge') {
-			today_color = 'red_circle';
+			today_emoji = 'red_circle';
 		}
 
 		if (tomorrow_color === 'bleu') {
-			tomorrow_color = 'blue_circle';
+			tomorrow_emoji = 'blue_circle';
 		} else if (tomorrow_color === 'blanc') {
-			tomorrow_color = 'white_circle';
+			tomorrow_emoji = 'white_circle';
 		} else if (tomorrow_color === 'rouge') {
-			tomorrow_color = 'red_circle';
+			tomorrow_emoji = 'red_circle';
 		} else {
-			tomorrow_color = 'person_shrugging';
+			tomorrow_emoji = 'person_shrugging';
 		}
 
 		const channel = await client.channels.fetch(yourDiscordChannelID);
 
-		// Send an embed instead of a message
 		channel.send({
 			embeds: [
 				{
 					title: `Bonjour !`,
-					description: `La couleur Tempo pour aujourd'hui est :${today_color}: \nLa couleur Tempo pour demain est :${tomorrow_color}: \n\nIl reste ${remaining_days.data.PARAM_NB_J_BLEU} jours :blue_circle:, ${remaining_days.data.PARAM_NB_J_BLANC} jours :white_circle: et ${remaining_days.data.PARAM_NB_J_ROUGE} jours :red_circle: dans le mois.`,
+					description: `La couleur Tempo pour aujourd'hui est ${today_color} :${today_emoji}: \nLa couleur Tempo pour demain est ${tomorrow_color} :${tomorrow_emoji}: \n\nIl reste ${remaining_days.data.PARAM_NB_J_BLEU} jours :blue_circle:, ${remaining_days.data.PARAM_NB_J_BLANC} jours :white_circle: et ${remaining_days.data.PARAM_NB_J_ROUGE} jours :red_circle: dans l'année.\n\nLe compteur est remis à zéro le 1er septembre de chaque année.\n\nBonne journée !`,
 					color: 0x0099ff,
 				},
 			],
