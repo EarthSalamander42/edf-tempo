@@ -16,7 +16,7 @@ const yourDiscordChannelID = config.channel_id;
 client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 	scheduleNotification();
-	// sendColorNotification(); // test purpose only
+	sendColorNotification(); // test purpose only
 });
 
 client.login(config.bot_secret);
@@ -39,40 +39,34 @@ function scheduleNotification() {
 	}, timeUntilNextDay);
 }
 
+const enum_to_color = [
+	"Inconnu",
+	"Bleu",
+	"Blanc",
+	"Rouge"
+]
+
+const enum_to_emoji = [
+	"person_shrugging",
+	"blue_circle",
+	"white_circle",
+	"red_circle"
+]
+
 async function sendColorNotification() {
 	const currentDate = new Date();
 	const tomorrowDate = new Date(currentDate);
-	tomorrowDate.setDate(currentDate.getDate());
-	const formattedDate = formatDate(tomorrowDate);
+	tomorrowDate.setDate(currentDate.getDate() + 1);
+	const formattedDate = formatDate(currentDate);
+	const formattedTomorrowDate = formatDate(tomorrowDate);
 
-	console.log(`Fetching tempo color for ${formattedDate}`);
+	console.log(`Fetching tempo color for ${formattedDate} and ${formattedTomorrowDate}`);
 
 	try {
-		const response = await axios.get(`https://particulier.edf.fr/services/rest/referentiel/searchTempoStore?dateRelevant=${formattedDate}`);
-		let today_color = response.data.couleurJourJ.replace('TEMPO_', '').toLowerCase();
-		let tomorrow_color = response.data.couleurJourJ1.replace('TEMPO_', '').toLowerCase();
-		let today_emoji = '';
-		let tomorrow_emoji = '';
-
-		const remaining_days = await axios.get(`https://particulier.edf.fr/services/rest/referentiel/getNbTempoDays`);
-	
-		if (today_color === 'bleu') {
-			today_emoji = 'blue_circle';
-		} else if (today_color === 'blanc') {
-			today_emoji = 'white_circle';
-		} else if (today_color === 'rouge') {
-			today_emoji = 'red_circle';
-		}
-
-		if (tomorrow_color === 'bleu') {
-			tomorrow_emoji = 'blue_circle';
-		} else if (tomorrow_color === 'blanc') {
-			tomorrow_emoji = 'white_circle';
-		} else if (tomorrow_color === 'rouge') {
-			tomorrow_emoji = 'red_circle';
-		} else {
-			tomorrow_emoji = 'person_shrugging';
-		}
+		const response = await axios.get(`https://www.api-couleur-tempo.fr/api/joursTempo?dateJour%5B%5D=${formattedDate}&dateJour%5B%5D=${formattedTomorrowDate}`);
+		// console.log(response.data);
+		const today_color = enum_to_color[response.data[0].codeJour];
+		const tomorrow_color = enum_to_color[response.data[1].codeJour];
 
 		const channel = await client.channels.fetch(yourDiscordChannelID);
 
@@ -80,15 +74,12 @@ async function sendColorNotification() {
 			embeds: [
 				{
 					title: `Bonjour !`,
-					description: `La couleur Tempo pour aujourd'hui est ${today_color} :${today_emoji}: \nLa couleur Tempo pour demain est ${tomorrow_color} :${tomorrow_emoji}: \n\nIl reste ${remaining_days.data.PARAM_NB_J_BLEU} jours :blue_circle:, ${remaining_days.data.PARAM_NB_J_BLANC} jours :white_circle: et ${remaining_days.data.PARAM_NB_J_ROUGE} jours :red_circle: dans l'année.\n\nLe compteur est remis à zéro le 1er septembre de chaque année.\n\nBonne journée !`,
+					description: `La couleur Tempo pour aujourd'hui est ${today_color} :${enum_to_emoji[response.data[0].codeJour].toLowerCase()}: \nLa couleur Tempo pour demain est ${tomorrow_color} :${enum_to_emoji[response.data[1].codeJour].toLowerCase()}: \n\nBonne journée !`,
+					// description: `La couleur Tempo pour aujourd'hui est ${today_color} :${today_emoji}: \nLa couleur Tempo pour demain est ${tomorrow_color} :${tomorrow_emoji}: \n\nIl reste ${remaining_days.data.PARAM_NB_J_BLEU} jours :blue_circle:, ${remaining_days.data.PARAM_NB_J_BLANC} jours :white_circle: et ${remaining_days.data.PARAM_NB_J_ROUGE} jours :red_circle: dans l'année.\n\nLe compteur est remis à zéro le 1er septembre de chaque année.\n\nBonne journée !`,
 					color: 0x0099ff,
 				},
 			],
 		});
-
-		// remaining_days.data.PARAM_NB_J_BLEU
-		// remaining_days.data.PARAM_NB_J_BLANC
-		// remaining_days.data.PARAM_NB_J_ROUGE
 	} catch (error) {
 		console.error('Error fetching tempo color:', error.message);
 	}
