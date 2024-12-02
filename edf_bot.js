@@ -16,7 +16,7 @@ const yourDiscordChannelID = config.channel_id;
 client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 	scheduleNotification();
-	sendColorNotification(); // test purpose only
+	// sendColorNotification(); // test purpose only
 });
 
 client.login(config.bot_secret);
